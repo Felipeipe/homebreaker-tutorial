@@ -3,6 +3,7 @@
 import rospy
 import actionlib
 
+
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Quaternion, Twist, PoseWithCovarianceStamped
@@ -17,8 +18,8 @@ class BaseSkill(object):
         self._robot_pose  = self
         self._mba_client  = None
 
-        self.odom_topic = 'epic-odom-topic'
-        self.cmd_vel_topic = 'epic-cmd-vel-topic'
+        self.odom_topic = '/odom'
+        self.cmd_vel_topic = '/mobile_base/commands/velocity'
         
         self._odom_sub    = rospy.Subscriber(self.odom_topic, PoseWithCovarianceStamped, self.odom_cb)
         self._cmd_vel_pub = None
@@ -106,10 +107,8 @@ class BaseSkill(object):
         Args:
             theta (float): The desired angle in degrees
         """
-
-        ###
-        ### Your logic here. Hint: the robot must maintain its x-y position
-        ###
+        degrees_theta = theta * (180/np.pi)
+        self.set_target(self, 0, 0, degrees_theta)
 
         self.go()
 

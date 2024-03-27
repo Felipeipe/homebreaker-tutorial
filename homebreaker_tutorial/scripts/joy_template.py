@@ -20,7 +20,7 @@ class Joy_Template(object):
         self._amcl_sub = rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.amcl_callback)
         
         # velocity publisher
-        self._cmd_vel_pub = rospy.Publisher("look-for-the-cmdvel-topic", Twist, queue_size=8)
+        self._cmd_vel_pub = rospy.Publisher("/mobile_base/commands/velocity", Twist, queue_size=8)
 
         # ROS Messages
         self.twist = Twist()
@@ -36,17 +36,17 @@ class Joy_Template(object):
         """
 
         # Choose which buttons to use
-        a = msg.buttons[...] 
-        b = msg.buttons[...] 
-        x = msg.buttons[...] 
-        l_analog = msg.axes[...]
-        r_analog = msg.axes[...]
+        a = msg.buttons[0] 
+        b = msg.buttons[1] 
+        x = msg.buttons[2] 
+        l_analog = msg.axes[1]
+        r_analog = msg.axes[3]
 
         # Choose a multiplier for the linear and angular speed
         # !Note: The velocity is in [m/s] and [rad/s]. Use multipliers that make sense
         # (the robot cannot muve faster than 1.2 [m/s])
-        self.twist.linear.x  = ... * l_analog
-        self.twist.angular.z = ... * r_analog
+        self.twist.linear.x  = 1.2 * l_analog
+        self.twist.angular.z = 5.0 * r_analog
         
         # STOP Button
         if a == 1:
@@ -55,7 +55,7 @@ class Joy_Template(object):
         
         # Add pose button
         if b == 1:
-            self.poses.append(self...)
+            self.poses.append(self.robot_pose)
         
         # Save ALL poses to file button
         if x == 1:
@@ -78,9 +78,9 @@ class Joy_Template(object):
         """
         
         # Save the corresponding pose message components
-        pos_x = msg. ...
-        pos_y = msg. ...
-        pos_z = msg. ...
+        pos_x = msg.pose.pose.position.x
+        pos_y = msg.pose.pose.position.y
+        pos_z = msg.pose.pose.position.z
         
         ori_x = msg.pose.pose.orientation.x
         ori_y = msg.pose.pose.orientation.y
