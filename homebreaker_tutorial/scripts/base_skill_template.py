@@ -18,8 +18,8 @@ class BaseSkill(object):
         self._robot_pose  = self
         self._mba_client  = None
 
-        self.odom_topic = '/odom'
-        self.cmd_vel_topic = '/mobile_base/commands/velocity'
+        self.odom_topic = '/amcl_pose'
+        self.cmd_vel_topic = '/p3dx/cmd_vel'
         
         self._odom_sub    = rospy.Subscriber(self.odom_topic, PoseWithCovarianceStamped, self.odom_cb)
         self._cmd_vel_pub = None
@@ -87,8 +87,7 @@ class BaseSkill(object):
     def get_robot_pose(self):
         """This function should return the current robot 2d pose.
         """
-
-        pass
+        return [amcl_pose.pose.pose.position[0],amcl_pose.pose.pose.position[1]] 
 
     def go(self):
         """Calls the Move Base Action server with the requested targte pose.
@@ -120,9 +119,13 @@ class BaseSkill(object):
         # Create a MoveBaseGoal message and assign the correspoinding target and 
         # make a call to the mba_client.
         ### Your code here
-
-
-
+        client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
+        goal = MoveBaseGoal()
+        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.pose.position.x = self.get_target_pose()[0]
+        goal.target_pose.pose.position.y = self.get_target_pose()[1]
+        goal.target_pose.pose.orientation.w = self.get_target_pose()[2]
         ###
 
         wait = self._mba_client.wait_for_result()
@@ -136,7 +139,7 @@ class BaseSkill(object):
         """ Convert euler angles to quaternion.
         Hint: search for 'quaternion_from_euler'
         """  
-        q = ...
+        q = amcl_pose.pose.pose.orientation
         return Quaternion(q[0], q[1], q[2], q[3])
 
     @staticmethod
