@@ -68,7 +68,7 @@ class BaseSkill(object):
         Args:
             x (float): The target x position in [m]
             y (float): The target y position in [m]
-            theta (float): The target rotation in [rad]
+            theta (float): The target rotation in [deg]
         """
 
         self._target_pose.x = x
@@ -87,7 +87,7 @@ class BaseSkill(object):
     def get_robot_pose(self):
         """This function should return the current robot 2d pose.
         """
-        return [amcl_pose.pose.pose.position[0],amcl_pose.pose.pose.position[1]] 
+        return [self._robot_pose.x, self._robot_pose.y]
 
     def go(self):
         """Calls the Move Base Action server with the requested targte pose.
@@ -106,8 +106,7 @@ class BaseSkill(object):
         Args:
             theta (float): The desired angle in degrees
         """
-        degrees_theta = theta * (180/np.pi)
-        self.set_target(self, 0, 0, degrees_theta)
+        self.set_target(0, 0, theta)
 
         self.go()
 
@@ -119,15 +118,26 @@ class BaseSkill(object):
         # Create a MoveBaseGoal message and assign the correspoinding target and 
         # make a call to the mba_client.
         ### Your code here
-        client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
+        client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
-        goal.target_pose.pose.position.x = self.get_target_pose()[0]
-        goal.target_pose.pose.position.y = self.get_target_pose()[1]
-        goal.target_pose.pose.orientation.w = self.get_target_pose()[2]
-        ###
 
+        target_pose = self.get_target_pose()
+        q = self._euler_to_quat(target_pose[2])
+        
+
+        goal.target_pose.pose.position.x = target_pose[0] 
+        goal.target_pose.pose.position.y = target_pose[1]
+        goal.target_pose.pose.position.z = target_pose[2]
+
+        goal.target_pose.pose.orientation.x = q.x 
+        goal.target_pose.pose.orientation.y = q.y
+        goal.target_pose.pose.orientation.z = q.z
+        goal.target_pose.pose.orientation.w = q.w
+        ###
+        self._mba_client.send_goal(goal)
+        
         wait = self._mba_client.wait_for_result()
 
         if not wait:
@@ -135,11 +145,12 @@ class BaseSkill(object):
         else:
             return self._mba_client.get_result()
 
-    def _euler_to_quat(self):
+    def _euler_to_quat(self, yaw):
         """ Convert euler angles to quaternion.
         Hint: search for 'quaternion_from_euler'
         """  
-        q = amcl_pose.pose.pose.orientation
+        # QUaternion = (x, y, z, w)
+        q = quaternion_from_euler(0, 0, yaw)
         return Quaternion(q[0], q[1], q[2], q[3])
 
     @staticmethod
@@ -157,7 +168,7 @@ if __name__ == "__main__":
     # You can set different goals to test the code.
     # Make sure the targets are feasible.
     # Example:
-    mb.set_target(1, 1, 0) # go to position x: 1m, y: 1m, theta: 0 deg
+    mb.set_target(1., -1., 0.) # go to position x: 1m, y: 1m, theta: 0 deg
     mb.go()
     mb.rotate(90) # rotate to angle 90 degrees
     mb.rotate(0)  # rotate back to zero
