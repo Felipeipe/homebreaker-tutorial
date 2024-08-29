@@ -45,8 +45,8 @@ class Joy_Template(object):
         # Choose a multiplier for the linear and angular speed
         # !Note: The velocity is in [m/s] and [rad/s]. Use multipliers that make sense
         # (the robot cannot muve faster than 1.2 [m/s])
-        self.twist.linear.x  = 1.2 * l_analog
-        self.twist.angular.z = 5.0 * r_analog
+        self.twist.linear.x  = 0.7 * l_analog
+        self.twist.angular.z = 2.0 * r_analog
         
         # STOP Button
         if a == 1:
@@ -61,7 +61,7 @@ class Joy_Template(object):
         if x == 1:
             rospack = rospkg.RosPack()
             pkgDir = rospack.get_path('homebreaker_tutorial')
-            np.save(pkgDir + '/poses/poses.npy', self.poses)
+            np.save(f'{pkgDir}/poses/poses.npy', self.poses)
 
 
         # Publish the velocity message    

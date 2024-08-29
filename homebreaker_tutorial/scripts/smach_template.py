@@ -5,8 +5,15 @@ import smach_ros
 from smach_ros import IntrospectionServer
 
 ### Robot Building (Import Robot Skills)
-... 
+import base_skill_template
+import numpy as np
+import rospkg
 
+# importing poses
+rospack = rospkg.RosPack()
+pkgDir = rospack.get_path('homebreaker_tutorial')
+poses = np.load(f'{pkgDir}/poses/poses.npy')
+print(poses)
 
 ### States
 
@@ -15,7 +22,7 @@ class ExampleState(smach.State):
     def __init__(self):
         smach.State.__init__(self,
             # Outcomes: define the state transition
-            outcomes=['outcome1', 'outcome2'],
+            outcomes = ['outcome1', 'outcome2'],
             # Userdata is used to share data between states
             # Input Keys: Userdata attributes to take as input
             input_keys=["data_1"],
