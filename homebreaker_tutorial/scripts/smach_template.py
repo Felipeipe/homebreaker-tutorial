@@ -5,39 +5,46 @@ import smach_ros
 from smach_ros import IntrospectionServer
 
 ### Robot Building (Import Robot Skills)
-import base_skill_template
+import base_skill_template as bskt
 import numpy as np
 import rospkg
 
-# importing poses
+### Importing poses
 rospack = rospkg.RosPack()
 pkgDir = rospack.get_path('homebreaker_tutorial')
 poses = np.load(f'{pkgDir}/poses/poses.npy')
-print(poses)
+
+### Defining Home and Checkpoints
+home = poses[0]
+checkpoints = np.delete(poses,0)
+
+def random_checkpoint(checkpoint):
+    check = np.random.choice(checkpoint, 1, replace = False)
+    return check
+
 
 ### States
-
-class ExampleState(smach.State):
+## State Walking:
+class Walking(smach.State):
     ### Class Initializer
     def __init__(self):
         smach.State.__init__(self,
             # Outcomes: define the state transition
-            outcomes = ['outcome1', 'outcome2'],
+            outcomes = ['succeded', 'user_says_keep_walking'],
             # Userdata is used to share data between states
             # Input Keys: Userdata attributes to take as input
-            input_keys=["data_1"],
+            input_keys = ["data_1"],
             # Output Keys: Userdata attributes to give as output
-            output_keys=["data_1"],
+            output_keys = ["data_1"],
         )
 
     ### State Action
     def execute(self, userdata):
-        rospy.loginfo('Executing Example State')
+        rospy.loginfo('Walking...')
         in_data = userdata.data_1
 
         # Your state logic here
-        ...
-
+        
         userdata.data_1 = None
         if True:
             # Transition to state related to outcome 1
@@ -51,7 +58,7 @@ class ExampleState(smach.State):
 def getInstance():
 
     # Create a SMACH state machine
-    sm = smach.StateMachine(outcomes=['your_out_comes'])
+    sm = smach.StateMachine(outcomes=['succeded', 'user_says_keep_walking','user_says_goto_home'])
 
     # Open the container
     with sm:
